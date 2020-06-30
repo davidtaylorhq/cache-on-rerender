@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Caching Test</title>
+    <style type="text/css">
+      body {
+        margin: 40px auto;
+        line-height: 1.6;
+        font-size: 18px;
+        color: #444;
+        padding: 0 10px;
+      }
+      h1,
+      h2,
+      h3 {
+        line-height: 1.2;
+      }
+      footer{
+        font-size: 12px;
+      }
+
+      .images{
+        display: flex;
+        flex-wrap: wrap;
+        align-items: middle;
+        justify-content: center;
+      }
+
+      .image-tile{
+        padding: 0 10px;
+        background-color: #eee;
+        border-radius: 5px;
+        width: 200px;
+        margin: 5px;
+      }
+
+      .image-tile img {
+        width: 100%;
+        height: auto;
+        background-color: red;
+      }
+
+      #indicator{
+        opacity: 1;
+        
+      }
+
+      #indicator.hidden{
+        transition: opacity 1s;
+        opacity: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Caching test</h1>
+    </header>
+    <article>
+      <div class="images">
+        
+        <div class="image-tile">
+          <h3>Image 1</h3>
+          <p>Requests: <span id="image1count">?</span></p>
+          <div id='image1'>
+            <img src="/images/1.jpg" width=300 height=248>        
+          </div>
+          <p>No Cache-Control header</p>
+        </div>
+
+        <div class="image-tile">
+          <h3>Image 2</h3>
+          <p>Requests: <span id="image2count">?</span></p>
+          <div id='image2'>
+            <img src="/images/2.jpg" width=300 height=248>        
+          </div>
+          <p>Cache-Control: 'max-age=31556952, public, immutable'</p>
+        </div>
+
+        <div class="image-tile">
+          <h3>Image 3</h3>
+          <p>Requests: <span id="image3count">?</span></p>
+          <div id='image3'>
+            <img src="/images/3.jpg" width=300 height=248>        
+          </div>
+          <p>Cache-Control: 'private'</p>
+        </div>
+
+        <div class="image-tile">
+          <h3>Image 4</h3>
+          <p>Requests: <span id="image4count">?</span></p>
+          <div id='image4'>
+            <img src="/images/4.jpg" width=300 height=248>        
+          </div>
+          <p>Cache-Control: 'no-cache'</p>
+        </div>
+
+        <div class="image-tile">
+          <h3>Image 5</h3>
+          <p>Requests: <span id="image5count">?</span> (redirect)
+          <span id="image51count">?</span> (image)</p>
+          <div id='image5'>
+            <img src="/images/5.jpg" width=300 height=248>        
+          </div>
+          <p>302 redirect with Cache-Control: 'private'</p>
+          <p>Image with Cache-Control: 'max-age=31556952, public, immutable'</p>
+        </div>
+      </div>
+      <p>
+        
+      <p>
+        <button onclick="deleteAllCookies()">Reset Counters</button>
+        <button onclick="quickRerender()">Rerender</button>
+        <span id='indicator' class='hidden'>Rerendered...</span>
+      </p>
+
+    </article>
+    <footer>
+      <hr />
+      by <a href="https://github.com/davidtaylorhq/safari-sw-samesite-bug">@davidtaylorhq</a>
+    </footer>
+  </body>
+  <script>
+    function quickRerender(){
+      ['image1', 'image2', 'image3', 'image4', 'image5'].forEach(name => {
+        let el = document.getElementById(name);
+        let content = el.innerHTML;
+        el.innerHTML = "";
+        el.innerHTML = content;
+      })
+
+      document.getElementById('indicator').classList.remove("hidden");
+      setTimeout(() => {
+        document.getElementById('indicator').classList.add("hidden")
+      }, 100);
+    }
+
+    function deleteAllCookies() {
+      var cookies = document.cookie.split(";");
+
+      for (var i = 0; i < cookies.length; i++) {
+          var cookie = cookies[i];
+          var eqPos = cookie.indexOf("=");
+          var name = eqPos > -1 ? cookie.substr(0, eqPos) : cookie;
+          document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT";
+      }
+  }
+
+    function getCookie(name) {
+      const value = `; ${document.cookie}`;
+      const parts = value.split(`; ${name}=`);
+      if (parts.length === 2) return parts.pop().split(';').shift();
+    }
+
+    setInterval(() => {
+      ['image1count', 'image2count', 'image3count', 'image4count', 'image5count', 'image51count'].forEach(name => {
+        document.getElementById(name).innerHTML = getCookie(name);
+      })
+    }, 100);
+  </script>
+</html>
